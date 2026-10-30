@@ -1,0 +1,19 @@
+{% extends "staff_base.html" %}{% block body %}
+<div class="top"><div><div class="eyebrow">Staff / Students</div><h1>Student Records</h1></div><a href="/staff/export.csv"><button class="secondary">⬇ Export current data (CSV)</button></a></div>
+<div class="grid">
+<div class="card"><div class="metric-label">Students in your scope</div><div class="metric">{{total}}</div><div class="hint">{{u.department}}</div></div>
+<div class="card"><div class="metric-label">Updated for {{cur}}</div><div class="metric">{{updated}}</div><div class="hint">records saved this month</div></div>
+<div class="card"><div class="metric-label">Pending for {{cur}}</div><div class="metric">{{total-updated}}</div><div class="hint o">still to update</div></div>
+<div class="card"><div class="metric-label">Average attendance</div><div class="metric">{{avg_att}}%</div></div></div>
+<div class="card"><form class="filters" method="get">
+<input name="q" placeholder="Search student ID" value="{{f.q}}">
+<select name="year"><option value="">All years</option>{% for y in [1,2,3,4] %}<option value="{{y}}" {{'selected' if f.year==y|string}}>Year {{y}}</option>{% endfor %}</select>
+{% if u.department=='ALL' %}<select name="dept"><option value="">All departments</option>{% for d in depts %}<option {{'selected' if f.dept==d}}>{{d}}</option>{% endfor %}</select>{% endif %}
+<select name="status"><option value="">Any status</option><option value="pending" {{'selected' if f.status=='pending'}}>Pending this month</option><option value="updated" {{'selected' if f.status=='updated'}}>Updated this month</option></select>
+<button>Filter</button></form>
+<div class="scroll"><table class="t"><tr><th>ID</th><th>Registered name</th><th>Dept</th><th>Yr</th><th>Att %</th><th>CGPA</th><th>Score</th><th>Category</th><th>Last update</th><th></th></tr>
+{% for r in rows %}<tr><td><b>{{r.id}}</b></td><td>{{r.name or '—'}}</td><td>{{r.dept}}</td><td>{{r.year}}</td><td>{{r.att|round(0)|int}}</td><td>{{r.cgpa}}</td><td>{{r.score}}</td><td><span class="pill cat-{{r.cat}}">{{r.cat}}</span></td>
+<td>{{r.last or '—'}} {% if r.done %}<span class="pill">✓ {{cur}}</span>{% endif %}</td><td><a class="btn" href="/staff/student/{{r.id}}">Update</a></td></tr>
+{% else %}<tr><td colspan="10" class="notice">No students match.</td></tr>{% endfor %}</table></div>
+{% if shown>rows|length %}<p class="notice">Showing {{rows|length}} of {{shown}} students. Use the filters to narrow down.</p>{% endif %}</div>
+{% endblock %}

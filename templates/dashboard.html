@@ -1,0 +1,65 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Student360 | Student Performance Dashboard</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head><body>
+{% macro cls(v) %}{{ 'green' if v>=75 else ('' if v>=55 else 'orange') }}{% endmacro %}
+<div class="layout"><aside class="sidebar"><div class="brand">Student<span>360</span></div><div class="nav-label">WORKSPACE</div>
+<nav><a class="active" data-page="dashboard">▦ <span>Dashboard</span></a><a data-page="profile">♙ <span>My Profile</span></a><a data-page="academics">▤ <span>Academic Records</span></a><a data-page="activities">✦ <span>Activities</span></a><a data-page="report">◷ <span>Analysis &amp; Report</span></a></nav>
+<div class="profile"><div class="avatar">{{initials}}</div><div><b>{{u.name}}</b><div style="color:#8993a8;font-size:11px">{{s.department}} · Year {{s.year}}</div></div><a href="/logout">Logout</a></div></aside>
+<main>
+<section id="dashboard" class="page active">
+<div class="top"><div><div class="eyebrow">Overview / Student</div><h1>Student Dashboard</h1></div></div>
+<div class="welcome"><div><h2>Hello, {{u.name.split()[0]}} 👋</h2><p>Here's a snapshot of your academic and overall progress.{% if last_update %} · Records updated by staff: {{last_update}}{% endif %}</p></div><div class="tag">● ANN prediction: {{pred}} performance</div></div>
+<div class="grid">
+<div class="card"><div class="metric-label">Overall Performance</div><div class="metric">{{s.overall_performance_score}}%</div><div class="hint">Category: {{s.performance_category}}</div></div>
+<div class="card"><div class="metric-label">Current CGPA</div><div class="metric">{{s.cgpa}}</div><div class="hint">SGPA {{s.sgpa}} · Semester {{s.semester}}</div></div>
+<div class="card"><div class="metric-label">Attendance</div><div class="metric">{{s.attendance_percent|round(0)|int}}%</div>{% if s.attendance_percent>=75 %}<div class="hint">Above 75% target</div>{% else %}<div class="hint o">Below 75% target</div>{% endif %}</div>
+<div class="card"><div class="metric-label">Activities</div><div class="metric">{{counts.total}}</div><div class="hint">{{counts.awards}} awards &amp; prizes</div></div></div>
+<div class="two">
+<div class="card"><h3 class="section-title">Assessment performance</h3><div class="eyebrow">Your marks vs department average</div>
+<div class="chart">{% for l,m,d in comps %}<div class="bar-wrap"><div class="pair"><div class="bar" style="height:{{m}}%" title="{{m}}"></div><div class="bar alt" style="height:{{d}}%" title="{{d}}"></div></div><span class="bar-label">{{l}}</span></div>{% endfor %}</div>
+<div class="legend"><span><i class="dot"></i>You</span><span><i class="dot green"></i>{{s.department}} average</span></div></div>
+<div class="card"><h3 class="section-title">Performance by area</h3><div class="eyebrow">Your current score</div>
+{% for a,(sc,avg) in scores.items() %}<div class="progress-row"><div class="progress-head"><span>{{a}}</span><b>{{sc|round(0)|int}}%</b></div><div class="track"><div class="fill {{cls(sc)}}" style="width:{{sc}}%"></div></div></div>{% endfor %}
+<p class="notice">Activity scores are percentile ranks among all students.</p></div></div>
+<div class="two">
+<div class="card"><h3 class="section-title">Your strengths &amp; focus areas</h3>
+{% for lv,a,t in strengths %}<div class="insight good"><strong>✓ Strength · {{a}}</strong>{{t}}</div>{% endfor %}
+{% for lv,a,t in focus %}<div class="insight {{lv}}"><strong>↗ Focus · {{a}}</strong>{{t}}</div>{% endfor %}</div>
+<div class="card"><h3 class="section-title">Recommended next steps</h3>
+{% for lv,a,t in focus[:5] %}<div class="activity"><span>{{t}}</span><span class="pill">{{a}}</span></div>{% else %}<div class="activity"><span>Great work! Keep up your current routine.</span></div>{% endfor %}</div></div>
+</section>
+
+<section id="profile" class="page"><div class="top"><div><div class="eyebrow">Workspace / Profile</div><h1>My Profile</h1></div></div>
+<div class="card"><h3 class="section-title">Student information</h3><div class="form-grid">
+{% for l,v in [('Full name',u.name),('Student ID',s.student_id),('Department',s.department),('Year',s.year),('Semester',s.semester),('Age',s.age),('Email',u.email)] %}<div class="field"><label>{{l}}</label><input value="{{v}}" readonly></div>{% endfor %}
+</div></div></section>
+
+<section id="academics" class="page"><div class="top"><div><div class="eyebrow">Workspace / Records</div><h1>Academic Records</h1></div></div>
+<div class="card"><h3 class="section-title">Academic performance</h3><div class="grid" style="grid-template-columns:repeat(3,1fr)">
+{% for l,m,d in comps %}<div><div class="metric-label">{{l}}</div><div class="metric">{{m|round(0)|int}}/100</div><div class="hint {{'' if m>=d else 'o'}}">Dept avg {{d|round(0)|int}}</div></div>{% endfor %}
+<div><div class="metric-label">SGPA / CGPA</div><div class="metric">{{s.sgpa}} / {{s.cgpa}}</div></div>
+<div><div class="metric-label">Study hours per day</div><div class="metric">{{s.study_hours_per_day}}</div></div>
+<div><div class="metric-label">Attendance</div><div class="metric">{{s.attendance_percent}}%</div></div></div></div>
+<div class="card" style="margin-top:16px"><h3 class="section-title">Monthly progress</h3>
+{% if hist %}<div style="position:relative;height:260px"><canvas id="trend"></canvas></div>
+<div style="overflow-x:auto;margin-top:16px"><table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="text-align:left;color:#74809a"><th style="padding:8px">Month</th><th>Attendance</th><th>Academic avg</th><th>SGPA</th><th>CGPA</th><th>Achievements</th><th>Staff remarks</th></tr>
+{% for h in hist %}<tr style="border-top:1px solid #e7ebf3"><td style="padding:8px"><b>{{h.month}}</b></td><td>{{h.att}}%</td><td>{{h.acad}}</td><td>{{h.sgpa}}</td><td>{{h.cgpa}}</td><td>{{h.ach}}</td><td>{{h.note}}</td></tr>{% endfor %}</table></div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>const T={{ trend|tojson }};new Chart(document.getElementById('trend'),{type:'line',data:{labels:T.labels,datasets:[{label:'Attendance %',data:T.att,borderColor:'#4169e1',backgroundColor:'#4169e133',tension:.3,fill:true},{label:'Academic average',data:T.acad,borderColor:'#15966b',tension:.3}]},options:{maintainAspectRatio:false,scales:{y:{min:0,max:100}}}});</script>
+{% else %}<p class="notice">No monthly updates from staff yet. Your record will appear here as staff update it each month.</p>{% endif %}</div></section>
+
+<section id="activities" class="page"><div class="top"><div><div class="eyebrow">Workspace / Beyond academics</div><h1>Activities</h1></div></div>
+<div class="three"><div class="card"><div class="metric-label">Co-curricular</div><div class="metric">{{counts.co}}</div><p class="eyebrow">Workshops, seminars, hackathons, certifications</p></div>
+<div class="card"><div class="metric-label">Extra-curricular</div><div class="metric">{{counts.ex}}</div><p class="eyebrow">Sports, arts, clubs</p></div>
+<div class="card"><div class="metric-label">Leadership &amp; service</div><div class="metric">{{counts.ld}}</div><p class="eyebrow">Volunteering, leadership, events</p></div></div>
+<div class="card" style="margin-top:16px"><h3 class="section-title">Activity summary</h3>
+{% for n,c in acts %}<div class="activity"><span>{{n}}</span><span class="pill">{{c}}</span></div>{% else %}<p class="notice">No activities recorded yet.</p>{% endfor %}</div></section>
+
+<section id="report" class="page"><div class="top"><div><div class="eyebrow">Workspace / Insights</div><h1>Analysis &amp; Report</h1></div><button class="secondary" onclick="window.print()">Print report</button></div>
+<div class="card"><h3 class="section-title">Student performance summary</h3>
+<p style="font-size:13px;line-height:1.7;color:#66718a">{{summary|safe}}</p>
+<div class="insight {{'good' if pred=='High' else ('warn' if pred=='Medium' else 'bad')}}"><strong>Overall assessment: {{pred}}</strong>Model confidence: {% for k,v in probs.items() %}{{k}} {{v}}% &nbsp;{% endfor %}</div>
+<h3 class="section-title" style="margin-top:22px">Strengths</h3><ul style="font-size:13px;line-height:2;color:#536079">{% for lv,a,t in strengths %}<li>{{t}}</li>{% else %}<li>Keep building on your current progress.</li>{% endfor %}</ul>
+<h3 class="section-title" style="margin-top:22px">Areas to improve</h3><ul style="font-size:13px;line-height:2;color:#536079">{% for lv,a,t in focus %}<li>{{t}}</li>{% else %}<li>No major concerns found.</li>{% endfor %}</ul></div></section>
+</main></div>
+<script>document.querySelectorAll('nav a').forEach(l=>l.addEventListener('click',()=>{document.querySelectorAll('nav a').forEach(a=>a.classList.remove('active'));document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));l.classList.add('active');document.getElementById(l.dataset.page).classList.add('active')}))</script>
+</body></html>

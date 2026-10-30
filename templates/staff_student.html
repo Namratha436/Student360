@@ -1,0 +1,21 @@
+{% extends "staff_base.html" %}{% block body %}
+<div class="top"><div><div class="eyebrow">Staff / <a href="/staff" style="color:inherit">Students</a> / {{sid}}</div><h1>{{sid}} <span class="sub">{{name or 'Not registered yet'}} · {{s.department}} · Year {{s.year}}</span></h1></div></div>
+<div class="grid">
+<div class="card"><div class="metric-label">Performance score (estimated)</div><div class="metric">{{s.overall_performance_score}}</div><div class="hint">{{s.performance_category}}</div></div>
+<div class="card"><div class="metric-label">Attendance</div><div class="metric">{{s.attendance_percent|round(1)}}%</div></div>
+<div class="card"><div class="metric-label">CGPA / SGPA</div><div class="metric">{{s.cgpa}} / {{s.sgpa}}</div></div>
+<div class="card"><div class="metric-label">Last update</div><div class="metric" style="font-size:20px">{{hist[0].month if hist else 'Baseline only'}}</div></div></div>
+<form method="post" class="card"><input type="hidden" name="csrf" value="{{csrf_token()}}">
+<div class="mrow"><div class="field"><label>Month being recorded</label><input type="month" name="month" value="{{month}}" max="{{cur}}" required onchange="location.href='?month='+this.value"></div>
+<p class="notice" style="margin:0">Values are pre-filled with the current record (or the saved record for the chosen month). Change what's new and save. Achievement counts are running totals.</p></div>
+{% for gname, fields in groups.items() %}<h3 class="section-title" style="margin-top:22px">{{gname}}</h3><div class="fgrid">
+{% for k,label,lo,hi,kind in fields %}<div class="field"><label>{{label}}</label><input type="number" name="{{k}}" value="{{vals.get(k,'')}}" min="{{lo}}" max="{{hi}}" step="{{'1' if kind=='i' else '0.01'}}" required></div>{% endfor %}</div>{% endfor %}
+<div class="field" style="margin-top:18px"><label>Remarks / achievements this month (optional)</label><input name="note" maxlength="300" value="{{note}}" placeholder="e.g. Won 2nd prize in inter-college hackathon"></div>
+<button style="margin-top:16px">Save {{month}} record</button>
+<p class="notice">The performance score is an estimate based on how the changed values shift the original score. The ANN prediction is recalculated from the new values automatically.</p></form>
+<div class="card" style="margin-top:18px"><h3 class="section-title">Monthly history</h3>
+<table class="t"><tr><th>Month</th><th>Attendance</th><th>Academic avg</th><th>SGPA</th><th>CGPA</th><th>Achievements</th><th>Remarks</th><th>Updated by</th><th></th></tr>
+{% for h in hist %}<tr><td><b>{{h.month}}</b></td><td>{{h.att}}</td><td>{{h.acad}}</td><td>{{h.sgpa}}</td><td>{{h.cgpa}}</td><td>{{h.ach}}</td><td>{{h.note}}</td><td>{{h.by}}<br><small>{{h.at}}</small></td>
+<td><form method="post" action="/staff/student/{{sid}}/delete/{{h.month}}" onsubmit="return confirm('Remove the {{h.month}} record?')"><input type="hidden" name="csrf" value="{{csrf_token()}}"><button class="secondary">Delete</button></form></td></tr>
+{% else %}<tr><td colspan="9" class="notice">No monthly records yet.</td></tr>{% endfor %}</table></div>
+{% endblock %}

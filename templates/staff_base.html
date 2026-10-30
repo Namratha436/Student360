@@ -1,0 +1,6 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Student360 | Staff</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"><link rel="stylesheet" href="{{ url_for('static', filename='staff.css') }}"></head><body>
+<div class="layout"><aside class="sidebar"><div class="brand">Student<span>360</span></div><div class="nav-label">STAFF PORTAL</div>
+<nav><a href="/staff" class="{{ 'active' if page=='list' }}">▦ <span>Students</span></a><a href="/staff/upload" class="{{ 'active' if page=='upload' }}">⇪ <span>Bulk upload</span></a></nav>
+<div class="profile"><div class="avatar">{{initials}}</div><div><b>{{u.name}}</b><div style="color:#8993a8;font-size:11px">Staff · {{u.department}}</div></div><a href="/logout">Logout</a></div></aside>
+<main>{% for cat,m in get_flashed_messages(with_categories=true) %}<div class="flash {{cat}}">{{m}}</div>{% endfor %}{% block body %}{% endblock %}</main></div></body></html>

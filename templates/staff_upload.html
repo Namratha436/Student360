@@ -1,0 +1,10 @@
+{% extends "staff_base.html" %}{% block body %}
+<div class="top"><div><div class="eyebrow">Staff / Bulk upload</div><h1>Monthly Bulk Upload</h1></div></div>
+<div class="card"><h3 class="section-title">Update many students from a CSV</h3>
+<ol class="steps"><li>Click <b>Export current data</b> on the Students page.</li><li>Edit the values in Excel (keep the <code>student_id</code> column; you may delete columns you aren't changing; add a <code>month</code> column like 2026-10 if needed).</li><li>Upload it below. Blank cells keep the current value.</li></ol>
+<form method="post" enctype="multipart/form-data"><input type="hidden" name="csrf" value="{{csrf_token()}}">
+<div class="mrow"><div class="field"><label>Month (used when the CSV has no month column)</label><input type="month" name="month" value="{{cur}}" max="{{cur}}" required></div>
+<div class="field"><label>CSV file</label><input type="file" name="file" accept=".csv" required></div></div><button style="margin-top:14px">Upload &amp; apply</button></form></div>
+{% if report %}<div class="card" style="margin-top:18px"><h3 class="section-title">Result</h3><div class="flash ok">✓ {{report.ok}} record(s) saved</div>
+{% if report.bad %}<div class="flash err">{{report.bad}} row(s) rejected{% if report.bad>report.errors|length %} (showing first {{report.errors|length}}){% endif %}</div><ul class="reasons">{% for e in report.errors %}<li>{{e}}</li>{% endfor %}</ul>{% endif %}</div>{% endif %}
+{% endblock %}

@@ -1,0 +1,16 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Student360 | Login</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<style>.tabs{display:flex;gap:6px;background:#eef2ff;padding:5px;border-radius:12px;margin-bottom:20px}
+.auth .tabs button{width:auto;flex:1;background:transparent;color:#66718a;padding:10px;border-radius:9px;font-size:13px}
+.auth .tabs button.active{background:#fff;color:#4169e1;box-shadow:0 2px 8px #1c2d5018}</style></head><body>
+<div class="auth"><div class="brand" style="padding:0 0 18px">Student<span>360</span></div><div class="card">
+{% for m in get_flashed_messages() %}<div class="flash">{{m}}</div>{% endfor %}
+<div class="tabs"><button type="button" id="tab-student" onclick="pick('student')">🎓 Student</button><button type="button" id="tab-staff" onclick="pick('staff')">👩‍🏫 Staff</button></div>
+<h2 id="ttl">Login</h2>
+<form method="post"><input type="hidden" name="portal" id="portal" value="{{ portal }}"><input name="email" type="email" placeholder="Email" required><input name="password" type="password" placeholder="Password" required><button>Login</button></form>
+<p class="notice" id="n-student">New here? <a href="/register">Create an account</a></p>
+<p class="notice" id="n-staff" style="display:none">Staff accounts are created by the administrator.</p></div></div>
+<script>function pick(p){portal.value=p;ttl.textContent=p==='staff'?'Staff Login':'Student Login';
+document.getElementById('tab-student').classList.toggle('active',p==='student');document.getElementById('tab-staff').classList.toggle('active',p==='staff');
+document.getElementById('n-student').style.display=p==='student'?'':'none';document.getElementById('n-staff').style.display=p==='staff'?'':'none'}
+pick('{{ portal }}')</script></body></html>
